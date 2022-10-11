@@ -42,5 +42,13 @@
     "done": "Done",
     "edit": "Edit",
     "details": "Details",
-    "pateintInformation": "Patient Information"
+    "pateintInformation": "Patient Information",
+    "myConsultations": "My Consultations",
+    "newConsultation": "New Consultation",
+    "add": "Add",
+    "problemDescription": "Problem Description",
+    "pregnant": "Pregnant?",
+    "breastFeeding": "Breast Feeding?",
+    "pregnancyMonth": "Pregnancy Month:",
+    "breastFeedingMonth": "Breast Feeding Month:"
 }

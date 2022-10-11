@@ -1,12 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:medical_app/Screens/Consultation/addConsultationMain.dart';
 import 'Screens/Authentication/SignUp.dart';
 import 'Screens/Authentication/SignIn.dart';
 import 'Screens/Patients/Patients.dart';
 import 'Screens/Patients/addPatient.dart';
 import 'Screens/Patients/addPatient2.dart';
 import 'Screens/Patients/PatientInformation.dart';
+import 'Screens/Consultation/Consultations.dart';
+import 'Screens/Consultation/addConsultationFemaleInfo.dart';
 
 void main() {
   runApp(MyApp());
@@ -29,7 +32,7 @@ class MyApp extends StatelessWidget {
         Locale('en', ''),
         Locale('ar', ''),
       ],
-      locale: Locale('ar',''),
+      locale: Locale('en',''),
       // routing
       routes: {
         '/signup': (context) => SignUp(),
@@ -37,7 +40,10 @@ class MyApp extends StatelessWidget {
         '/patients': (context) => Patients(),
         '/addpatient1': (context) => addPatient1(),
         '/addpatient2': (context) => addPatient2(),
-        '/patientinformation': (context) =>PatientInformationSecreen(),
+        '/patientinformation': (context) => PatientInformationSecreen(),
+        '/consultations': (context) => Consultations(),
+        '/addconsultationmain': (context) => addConsultationMain(),
+        '/addconsultationfemaleinfo': (context) => addConsultationFemaleInfo(),
       },
       initialRoute: '/signup',
       // Theme

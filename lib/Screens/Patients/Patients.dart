@@ -33,6 +33,7 @@ class _PatientsState extends State<Patients> {
   Future<void> getMyPatients() async {
     myPatients.clear();
     String? token = await storage.read(key: 'token');
+    print(token);
     http.Response response = await http.get(
       Uri.parse( URL+ '/api/patient'),
       headers: <String, String>{
@@ -136,77 +137,81 @@ class _PatientsState extends State<Patients> {
           Center(
             child: CircularProgressIndicator(),
           ) :
-            ListView.builder(
-                padding: const EdgeInsets.all(8),
-                itemCount: myPatients.length,
-                itemBuilder: (BuildContext context, int index) {
-                  return InkWell(
-                    onTap: (){
-
-                    },
-                    onLongPress: (){
-
-                    },
-                    child: Dismissible(
-                      child: MyContainer(
-                        Text(myPatients[index].name,style: TextStyle(fontSize: 20,color: Colors.black,fontWeight: FontWeight.bold)),
-                        Text(Capitalize(myPatients[index].work+" \u25CF "+myPatients[index].calculateAge()+" "+AppLocalizations.of(context)!.yearsOld),style: TextStyle(fontSize: 16, color: MyGreyColorDarker))
-                      ),
-                      key: ValueKey(index),
-                      background: Container(
-                          color: Colors.amber,
+            RefreshIndicator(
+              onRefresh: ()async{
+                await getMyPatients();
+              },
+              child: ListView.builder(
+                  padding: const EdgeInsets.all(8),
+                  itemCount: myPatients.length,
+                  itemBuilder: (BuildContext context, int index) {
+                    return InkWell(
+                      onTap: (){
+                        Navigator.pushNamed(context, '/consultations',arguments: {
+                          'info': myPatients[index],
+                        });
+                      },
+                      child: Dismissible(
+                        child: MyContainer(
+                          Text(myPatients[index].name,style: TextStyle(fontSize: 20,color: Colors.black,fontWeight: FontWeight.bold)),
+                          Text(Capitalize(myPatients[index].work+" \u25CF "+myPatients[index].calculateAge()+" "+AppLocalizations.of(context)!.yearsOld),style: TextStyle(fontSize: 16, color: MyGreyColorDarker))
+                        ),
+                        key: ValueKey(index),
+                        background: Container(
+                            color: Colors.amber,
+                            margin: EdgeInsets.all(20),
+                            padding: EdgeInsets.symmetric(horizontal: 20),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              children: [
+                                Icon(
+                                  Icons.info,
+                                  color: Colors.white,
+                                ),
+                                SizedBox(width: 10,),
+                                Text(AppLocalizations.of(context)!.details,style: TextStyle(color: Colors.white,fontSize: 20,fontWeight: FontWeight.bold),),
+                              ],
+                            ),
+                        ),
+                        secondaryBackground: Container(
+                          color: Colors.red,
                           margin: EdgeInsets.all(20),
                           padding: EdgeInsets.symmetric(horizontal: 20),
                           child: Row(
-                            mainAxisAlignment: MainAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.end,
                             children: [
+                              Text(AppLocalizations.of(context)!.delete,style: TextStyle(color: Colors.white,fontSize: 20,fontWeight: FontWeight.bold),),
+                              SizedBox(width: 10,),
                               Icon(
-                                Icons.info,
+                                Icons.delete,
                                 color: Colors.white,
                               ),
-                              SizedBox(width: 10,),
-                              Text(AppLocalizations.of(context)!.details,style: TextStyle(color: Colors.white,fontSize: 20,fontWeight: FontWeight.bold),),
                             ],
                           ),
-                      ),
-                      secondaryBackground: Container(
-                        color: Colors.red,
-                        margin: EdgeInsets.all(20),
-                        padding: EdgeInsets.symmetric(horizontal: 20),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.end,
-                          children: [
-                            Text(AppLocalizations.of(context)!.delete,style: TextStyle(color: Colors.white,fontSize: 20,fontWeight: FontWeight.bold),),
-                            SizedBox(width: 10,),
-                            Icon(
-                              Icons.delete,
-                              color: Colors.white,
-                            ),
-                          ],
                         ),
+                        confirmDismiss: (direction) async {
+                          return false;
+                        },
+                        onUpdate: (details) async{
+                          if (details.reached && !details.previousReached){
+                            bool hasVib = await Vibration.hasVibrator() ?? false;
+                            if (hasVib)
+                              Vibration.vibrate(duration: 100);
+                            if (details.direction == DismissDirection.startToEnd){
+                              await Navigator.pushNamed(context, '/patientinformation',arguments: {
+                                'info': myPatients[index],
+                              });
+                              await getMyPatients();
+                            }
+                            else {
+                              showAlertDialog(context, myPatients[index].name,index);
+                            }
+                          }
+                        },
                       ),
-                      confirmDismiss: (direction) async {
-                        return false;
-                      },
-                      onUpdate: (details) async{
-                        if (details.reached && !details.previousReached){
-                          bool hasVib = await Vibration.hasVibrator() ?? false;
-                          if (hasVib)
-                            Vibration.vibrate(duration: 100);
-                          if (details.direction == DismissDirection.startToEnd){
-                            await Navigator.pushNamed(context, '/patientinformation',arguments: {
-                              'info': myPatients[index],
-                            });
-                            await getMyPatients();
-                          }
-                          else {
-                            showAlertDialog(context, myPatients[index].name,index);
-                          }
-                        }
-                      },
-                    ),
-                  );
-                },
+                    );
+                  },
+              ),
             )
 
       ),

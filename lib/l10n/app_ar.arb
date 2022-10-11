@@ -42,5 +42,14 @@
     "done":"تم",
     "edit": "تعديل",
     "details": "التفاصيل",
-    "pateintInformation": "معلومات المريض"
+    "pateintInformation": "معلومات المريض",
+    "myConsultations": "استشاراتي",
+    "newConsultation": "استشارة جديدة",
+    "add": "اضافة",
+    "problemDescription": "وصف المشكلة",
+    "pregnant": "حامل؟",
+    "breastFeeding": "مرضع؟",
+    "pregnancyMonth": "فترة الحمل بالأشهر:",
+    "breastFeedingMonth": "فترة الإرضاع بالأشهر:"
+
 }
