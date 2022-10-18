@@ -30,57 +30,59 @@ class _SignUpState extends State<SignUp> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SingleChildScrollView(
-      child: Container(
-        height: MediaQuery.of(context).size.height,
-        child: Column(
-          children: [
-            SizedBox(
-              height: 70,
-            ),
-            logoImage(),
-            SizedBox(
-              height: 50,
-            ),
-            CreateNewAccountText(),
-            SizedBox(
-              height: 30,
-            ),
-            Username(),
-            Email(),
-            Password(),
-            ConfirmPassword(),
-            SizedBox(
-              height: 20,
-            ),
-            signUpButton(),
-            messageText(),
-            SizedBox(
-              height: 20,
-            ),
-            AlreadyHaveAcountText(),
-            // HorizontalDevider(),
-            // SizedBox(height: 40,),
-            // FacebookAndGoogleSignUp(),
-          ],
-          mainAxisAlignment: MainAxisAlignment.center,
-        ),
+        body: Center(
+          child: SingleChildScrollView(
+          child: Column(
+            children: [
+              logoImage(),
+              CreateNewAccountText(),
+              UserInput(),
+              signUpButton(),
+              messageText(),
+              AlreadyHaveAcountText(),
+            ],
+          ),
       ),
-    ));
+        ),
+    );
   }
 
-  Widget logoImage() {
-    return ConstrainedBox(
-        constraints: BoxConstraints.tight(Size(140, 140)),
-        child: Image.asset('images/logo.png'));
+  Widget logoImage(){
+    double H = MediaQuery.of(context).size.height / 5;
+    double W = MediaQuery.of(context).size.width;
+    return Container(
+        width: W,
+        height: H,
+        child: FittedBox(child: Image.asset('images/logo.png'),fit: BoxFit.contain,)
+    );
   }
 
   Widget CreateNewAccountText() {
-    return Text(
-      AppLocalizations.of(context)!.createNewAccount,
-      style: TextStyle(
-        fontSize: 30.0,
-        fontWeight: FontWeight.bold,
+    return Container(
+        height: MediaQuery.of(context).size.height / 10,
+    child: Center(
+      child: Text(
+        AppLocalizations.of(context)!.createNewAccount,
+        style: TextStyle(
+          fontSize: 30.0,
+          fontWeight: FontWeight.bold,
+          ),
+        ),
+    )
+    );
+  }
+
+  Widget UserInput(){
+    return Container(
+      padding: EdgeInsets.only(bottom: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Username(),
+          Email(),
+          Password(),
+          ConfirmPassword(),
+        ],
       ),
     );
   }

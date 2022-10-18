@@ -78,12 +78,10 @@ class _addPatient2State extends State<addPatient2> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.addNewPatient,style: TextStyle(color: Colors.black)),
+        title: Text(AppLocalizations.of(context)!.pateintInformation,style: TextStyle(color: Colors.black)),
       ),
       body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
+        child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Work(),
@@ -94,7 +92,6 @@ class _addPatient2State extends State<addPatient2> {
             ],
           ),
         ),
-      ),
     );
   }
 

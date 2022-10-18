@@ -33,42 +33,59 @@ class _SignInState extends State<SignIn> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        body: SingleChildScrollView(
-            child: Container(
-              height: MediaQuery.of(context).size.height,
-                child: Column(
-                  children: [
-                    SizedBox(height: 50,),
-                    logoImage(),
-                    SizedBox(height: 50,),
-                    LoginToYourAccountText(),
-                    SizedBox(height: 30,),
-                    Email(),
-                    Password(),
-                    SizedBox(height: 40,),
-                    signInButton(),
-                    messageText(),
-                    forgetPasswordButton(),
-                    SizedBox(height: 60,),
-                    dontHaveAnAccountText(),
-                  ],
-                  mainAxisAlignment: MainAxisAlignment.center,
+        body: Center(
+          child: SingleChildScrollView(
+              child: Column(
+                    children: [
+                      logoImage(),
+                      LoginToYourAccountText(),
+                      EmailAndPassword(),
+                      signInButton(),
+                      messageText(),
+                      forgetPasswordButton(),
+                      dontHaveAnAccountText()
+                    ],
+                    mainAxisAlignment: MainAxisAlignment.center,
+                  ),
                 ),
-              )
         )
     );
   }
 
   Widget logoImage(){
-    return ConstrainedBox(constraints: BoxConstraints.tight(Size(140,140)),child: Image.asset('images/logo.png'));
+    double H = MediaQuery.of(context).size.height / 4;
+    double W = MediaQuery.of(context).size.width;
+    return Container(
+      width: W,
+      height: H,
+      child: FittedBox(child: Image.asset('images/logo.png'),fit: BoxFit.contain,)
+    );
   }
 
   Widget LoginToYourAccountText(){
-    return Text(
-      AppLocalizations.of(context)!.loginToYourAccount,
-      style: TextStyle(
-        fontSize: 30.0,
-        fontWeight: FontWeight.bold,
+    return Container(
+      height: MediaQuery.of(context).size.height / 8,
+      child: Center(
+        child: Text(
+          AppLocalizations.of(context)!.loginToYourAccount,
+          style: TextStyle(
+            fontSize: 30.0,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget EmailAndPassword(){
+    return Container(
+      padding: EdgeInsets.only(bottom: 20),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Email(),
+          Password(),
+        ],
       ),
     );
   }

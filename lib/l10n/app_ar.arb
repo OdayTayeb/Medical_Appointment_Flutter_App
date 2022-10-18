@@ -50,6 +50,7 @@
     "pregnant": "حامل؟",
     "breastFeeding": "مرضع؟",
     "pregnancyMonth": "فترة الحمل بالأشهر:",
-    "breastFeedingMonth": "فترة الإرضاع بالأشهر:"
+    "breastFeedingMonth": "فترة الإرضاع بالأشهر:",
+    "youWantToRecordAVoice": "هل تريد تسجيل صوتي؟"
 
 }

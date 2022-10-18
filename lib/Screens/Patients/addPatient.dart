@@ -19,7 +19,6 @@ class _addPatient1State extends State<addPatient1> {
   TextEditingController phoneController = TextEditingController(text: "");
   TextEditingController addressController = TextEditingController(text: "");
 
-  String message="";
 
   bool valuesIsInit = false;
   late PatientInfo info;
@@ -37,35 +36,35 @@ class _addPatient1State extends State<addPatient1> {
     }
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.addNewPatient,style: TextStyle(color: Colors.black)),
+        title: Text(AppLocalizations.of(context)!.pateintInformation,style: TextStyle(color: Colors.black)),
       ),
       body: SingleChildScrollView(
-        child: Container(
-          height: MediaQuery.of(context).size.height,
-          child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
+        child: Column(
               children: [
-                SizedBox(height: 70,),
                 fillInformationText(),
-                SizedBox(height: 30,),
                 Name(),
                 PhoneNumber(),
                 Address(),
-                messageText(),
                 NextButton(),
               ],
             ),
         ),
-      ),
     );
   }
 
+
+
   Widget fillInformationText(){
-    return Text(
-      AppLocalizations.of(context)!.fillTheInformation,
-      style: TextStyle(
-        fontSize: 25,
-        fontWeight: FontWeight.bold,
+    return Container(
+      height: MediaQuery.of(context).size.height / 10,
+      child: Center(
+        child: Text(
+          AppLocalizations.of(context)!.fillTheInformation,
+          style: TextStyle(
+            fontSize: 25,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ),
     );
   }
@@ -170,10 +169,6 @@ class _addPatient1State extends State<addPatient1> {
     );
   }
 
-  Widget messageText(){
-    return Text(message,style: TextStyle(color: Colors.red),);
-  }
-
   Widget NextButton(){
     return Padding(
       padding: const EdgeInsets.all(20.0),
@@ -182,14 +177,9 @@ class _addPatient1State extends State<addPatient1> {
             // Front End Validation
             RegExp regExp = RegExp(r'^[0-9]{10}$');
             if (!regExp.hasMatch(phoneController.text)) {
-              setState(() {
-                message = AppLocalizations.of(context)!.invalidPhoneNumber;
-              });
+              ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(AppLocalizations.of(context)!.invalidPhoneNumber)));
             }
             else {
-              setState(() {
-                message = "";
-              });
               if (valuesIsInit) {
                 Navigator.pushNamed(context, '/addpatient2', arguments: {
                   'name': nameController.text,

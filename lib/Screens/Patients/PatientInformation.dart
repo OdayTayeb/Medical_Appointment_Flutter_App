@@ -35,7 +35,7 @@ class PatientInformationSecreen extends StatelessWidget {
               )
             ),
             SizedBox(
-              height: MediaQuery.of(context).size.height/3,
+              height: MediaQuery.of(context).size.height/3.2,
               child: ListView.builder(
                   scrollDirection: Axis.horizontal,
                   itemCount: 6,
@@ -49,15 +49,20 @@ class PatientInformationSecreen extends StatelessWidget {
                   },
               ),
             ),
-            Padding(
-              padding: EdgeInsets.all(20),
-              child: ElevatedButton(onPressed: () async {
-                await Navigator.pushNamed(context, '/addpatient1',arguments: {
-                  'isEdit': true,
-                  'info': info,
-                });
-                Navigator.pop(context);
-              }, child: Text(AppLocalizations.of(context)!.edit,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),)),)
+            Expanded(
+              child: Align(
+                alignment: Alignment.bottomCenter,
+                child: Padding(
+                  padding: EdgeInsets.all(20),
+                  child: ElevatedButton(onPressed: () async {
+                    await Navigator.pushNamed(context, '/addpatient1',arguments: {
+                      'isEdit': true,
+                      'info': info,
+                    });
+                    Navigator.pop(context);
+                  }, child: Text(AppLocalizations.of(context)!.edit,style: TextStyle(fontWeight: FontWeight.bold,fontSize: 18),)),),
+              ),
+            )
           ],
         ),
       ),

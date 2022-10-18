@@ -28,6 +28,9 @@ class _MyTextFieldState extends State<MyTextField> {
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 5, 10, 5),
       child: TextField(
+        style: TextStyle(
+            fontSize: 14
+        ),
         obscureText: secureText,
         cursorColor: Colors.black,
         decoration: InputDecoration(
@@ -67,7 +70,7 @@ class _MyTextFieldState extends State<MyTextField> {
 class MyContainer extends StatelessWidget {
 
   Widget w1,w2;
-  double? Height = 130;
+  double? Height = 0;
   double? Width = 0;
 
   MyContainer(this.w1,this.w2);
@@ -77,7 +80,7 @@ class MyContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       margin: EdgeInsets.all(20),
-      height: Height,
+      height: Height==0? MediaQuery.of(context).size.height / 6 : Height,
       width: Width ==0? MediaQuery.of(context).size.width : Width,
       decoration: BoxDecoration(
         border: Border.all(color: MyGreyColorDarker, width: 1),

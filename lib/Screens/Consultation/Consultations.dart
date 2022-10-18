@@ -224,9 +224,13 @@ class _ConsultationsState extends State<Consultations> {
         label: Text(AppLocalizations.of(context)!.newConsultation),
         onPressed: () async {
           if (myPatient.gender == "Female")
-            await Navigator.pushNamed(context, '/addconsultationfemaleinfo');
+            await Navigator.pushNamed(context, '/addconsultationfemaleinfo',arguments: {
+              'info': myPatient,
+            });
           else
-            await Navigator.pushNamed(context, '/addconsultationmain');
+            await Navigator.pushNamed(context, '/addconsultationmain',arguments: {
+              'info': myPatient,
+            });
           getMyConsultations();
         },
       ),

@@ -7,6 +7,8 @@
     <key>NSCameraUsageDescription</key>
     <string>The app needs access to camera</string>
     <key>NSMicrophoneUsageDescription</key>
+    <string>We need to access to the microphone to record audio file</string>
+    <key>NSMicrophoneUsageDescription</key>
     <string>The app needs access to microphone</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
