@@ -153,6 +153,7 @@ class _SignInState extends State<SignIn> {
                 Navigator.pushNamed(context, '/patients');
               }
               else {
+                print(response.body);
                 Map<String, dynamic> errors = JsonResponse['errors'];
                 setState(() {
                   message = errors[ errors.keys.toList()[0] ].toString();
@@ -160,6 +161,7 @@ class _SignInState extends State<SignIn> {
               }
             }
             catch(e){
+              print(e);
               setState(() {
                 message = "Error connecting to server";
               });

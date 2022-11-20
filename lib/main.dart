@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:medical_app/Screens/Consultation/ConsulatationInformation.dart';
 import 'package:medical_app/Screens/Consultation/addConsultationMain.dart';
+import 'package:medical_app/Screens/tools/ImageShow.dart';
+import 'package:medical_app/Screens/tools/PdfView.dart';
 import 'Screens/Authentication/SignUp.dart';
 import 'Screens/Authentication/SignIn.dart';
 import 'Screens/Patients/Patients.dart';
@@ -32,7 +35,7 @@ class MyApp extends StatelessWidget {
         Locale('en', ''),
         Locale('ar', ''),
       ],
-      locale: Locale('en',''),
+      locale: Locale('ar',''),
       // routing
       routes: {
         '/signup': (context) => SignUp(),
@@ -44,6 +47,9 @@ class MyApp extends StatelessWidget {
         '/consultations': (context) => Consultations(),
         '/addconsultationmain': (context) => addConsultationMain(),
         '/addconsultationfemaleinfo': (context) => addConsultationFemaleInfo(),
+        '/consultationinformation': (context) => ConsultationInformation(),
+        '/imageshow': (context) =>ImageShow(),
+        '/pdfview': (context) =>PdfView(),
       },
       initialRoute: '/signup',
       // Theme

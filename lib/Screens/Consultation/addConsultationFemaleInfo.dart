@@ -1,6 +1,7 @@
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:medical_app/classes/ConsultationInfo.dart';
 import 'package:medical_app/classes/PatientInfoClass.dart';
 import 'package:medical_app/globalWidgets.dart';
 import '../../MyColors.dart';
@@ -16,27 +17,39 @@ class addConsultationFemaleInfo extends StatefulWidget {
 class _addConsultationFemaleInfoState extends State<addConsultationFemaleInfo> {
 
   late PatientInfo myPatient;
+  late ConsultationInfo myConsultation;
   bool valuesIsInit = false;
   List<bool> _isOpen = [false, false];
 
   double PregnancyMonth = 3;
   TextEditingController BreastFeedMonth = TextEditingController(text: "6");
+  bool isEdit = false;
 
   @override
   Widget build(BuildContext context) {
 
     final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
-    if (arguments['info'] != null && !valuesIsInit) {
+
+    if (!valuesIsInit) {
       myPatient = arguments['info'];
+      if (arguments['consultation'] != null){
+        myConsultation = arguments['consultation'];
+        _isOpen[0] = (myConsultation.pregnant == "1");
+        _isOpen[1] = (myConsultation.breast_feeding == "1");
+        if (_isOpen[0])
+          PregnancyMonth = double.parse(myConsultation.pregnant_month);
+        if (_isOpen[1])
+          BreastFeedMonth = TextEditingController(text: myConsultation.breast_feeding_month);
+        isEdit = true;
+      }
+
       valuesIsInit = true;
     }
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
-            AppLocalizations.of(context)!.add +
-                " " +
-                AppLocalizations.of(context)!.newConsultation,
+            AppLocalizations.of(context)!.consultationInformation,
             style: TextStyle(color: Colors.black)),
       ),
       body: Column(
@@ -51,6 +64,7 @@ class _addConsultationFemaleInfoState extends State<addConsultationFemaleInfo> {
 
   Widget Pregnant(){
     return ExpansionTile(
+      initiallyExpanded: _isOpen[0],
       title: Text(
         AppLocalizations.of(context)!.pregnant,
         style: TextStyle(color: _isOpen[0] ? Colors.green : Colors.red),
@@ -94,6 +108,7 @@ class _addConsultationFemaleInfoState extends State<addConsultationFemaleInfo> {
 
   Widget BreastFeeding(){
     return ExpansionTile(
+      initiallyExpanded: _isOpen[1],
       title: Text(
         AppLocalizations.of(context)!.breastFeeding,
         style: TextStyle(color: _isOpen[1] ? Colors.green : Colors.red),
@@ -159,13 +174,26 @@ class _addConsultationFemaleInfoState extends State<addConsultationFemaleInfo> {
           padding: const EdgeInsets.all(10.0),
           child: ElevatedButton(
             onPressed: (){
-              Navigator.pushNamed(context, '/addconsultationmain',arguments: {
-                'info': myPatient,
-                'pregnant': _isOpen[0] ? "1": "0",
-                'pregnancy_month': PregnancyMonth.toString(),
-                'breast_feeding': _isOpen[1] ? "1" : "0",
-                'breast_feeding_month': BreastFeedMonth.text,
-              });
+              if (isEdit){
+                Navigator.pushNamed(context, '/addconsultationmain',arguments: {
+                  'info': myPatient,
+                  'pregnant': _isOpen[0] ? "1": "0",
+                  'pregnancy_month': PregnancyMonth.toInt().toString(),
+                  'breast_feeding': _isOpen[1] ? "1" : "0",
+                  'breast_feeding_month': BreastFeedMonth.text,
+                  'consultation': myConsultation,
+                });
+              }
+              else {
+                Navigator.pushNamed(
+                    context, '/addconsultationmain', arguments: {
+                  'info': myPatient,
+                  'pregnant': _isOpen[0] ? "1" : "0",
+                  'pregnancy_month': PregnancyMonth.toInt().toString(),
+                  'breast_feeding': _isOpen[1] ? "1" : "0",
+                  'breast_feeding_month': BreastFeedMonth.text,
+                });
+              }
             },
             child: Text(AppLocalizations.of(context)!.next),
           ),

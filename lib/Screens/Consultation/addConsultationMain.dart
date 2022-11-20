@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:medical_app/SecureStorage.dart';
+import 'package:medical_app/classes/ConsultationInfo.dart';
 import 'package:medical_app/classes/PatientInfoClass.dart';
 import 'package:medical_app/globalWidgets.dart';
 import '../../MyColors.dart';
@@ -38,9 +39,11 @@ class _addConsultationMainState extends State<addConsultationMain> {
   double sliderPosition = 0;
   bool recordIsReady = false;
   bool recordIsBeingPlayed = false;
-  bool thereIsRecord = false;
+  bool isEdit = false;
+  bool isDoneButtonClicked = false;
 
   late PatientInfo myPatient;
+  late ConsultationInfo myConsultation;
   String isPregnant = "0";
   String pregnancyMonth = "0";
   String isBreastFeed = "0";
@@ -218,24 +221,32 @@ class _addConsultationMainState extends State<addConsultationMain> {
       if (isBreastFeed == "0")
         breastFeedMonth = "0";
 
+      if (arguments['consultation'] != null){
+        myConsultation = arguments['consultation'];
+        DescriptionController.text = myConsultation.patient_complaint;
+        isEdit = true;
+      }
+
+
       valuesIsInit = true;
     }
 
+
     return Scaffold(
       appBar: AppBar(
-        title: Text(AppLocalizations.of(context)!.add+" "+AppLocalizations.of(context)!.newConsultation,style: TextStyle(color: Colors.black)),
+        title: Text(AppLocalizations.of(context)!.consultationInformation,style: TextStyle(color: Colors.black)),
       ),
       body: SingleChildScrollView(
         child: Column(
             mainAxisAlignment: MainAxisAlignment.start,
             children: [
               Description(),
-              Text('Uploaded Images',style: TextStyle(color: Colors.black,)),
-              ImageSelector(),
-              Text('Uploaded PDFs',style: TextStyle(color: Colors.black,)),
-              PdfSelector(),
-              VoiceRecorder(),
-              DoneButton(),
+              if (!isEdit) Text(AppLocalizations.of(context)!.uploadedImages,style: TextStyle(color: Colors.black,)),
+              if (!isEdit) ImageSelector(),
+              if (!isEdit) Text(AppLocalizations.of(context)!.uploadedPdfs,style: TextStyle(color: Colors.black,)),
+              if (!isEdit) PdfSelector(),
+              if (!isEdit) VoiceRecorder(),
+              DoneButton()
             ],
           ),
         ),
@@ -317,123 +328,106 @@ class _addConsultationMainState extends State<addConsultationMain> {
   }
 
   Widget VoiceRecorder(){
-    return ExpansionTile(
-        title: Text(
-          AppLocalizations.of(context)!.youWantToRecordAVoice,
-          style: TextStyle(color: thereIsRecord ? Colors.green : Colors.red),
-        ),
-        trailing: thereIsRecord
-            ? Icon(
-          CupertinoIcons.check_mark_circled_solid,
-          color: Colors.green,
-        )
-            : Icon(
-          CupertinoIcons.clear_circled_solid,
-          color: Colors.red,
-        ),
-        onExpansionChanged: (expanded) {
-          setState(() {
-            thereIsRecord = expanded;
-          });
-        },
-        leading: Icon(
-          Icons.label,
-          color: Colors.black,
-        ),
-        children : [
+    return Container(
+      margin: EdgeInsets.all(20),
+      color: Colors.black12,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
           Container(
-            margin: EdgeInsets.all(20),
             color: Colors.black12,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Container(
-                  color: Colors.black38,
-                  child: IconButton(
-                      onPressed: recordIsReady ? () async {
-                        if (myPlayer.isPlaying) {
-                          myPlayer.pausePlayer();
-                          setState(() {
-                            recordIsBeingPlayed = false;
-                          });
-                        }
-                        else {
-                          if (!myPlayer.isPaused)
-                            myPlayer.startPlayer(
-                                fromURI: 'myRecord',
-                                whenFinished: (){
-                                  setState(() {
-                                    sliderPosition = 0;
-                                    recordIsBeingPlayed = false;
-                                  });
-                                }
-                            );
-                          else myPlayer.resumePlayer();
-                          setState(() {
-                            recordIsBeingPlayed = true;
-                          });
-                        }
-                        myPlayer.onProgress!.listen(
-                                (e) {
-                              Duration maxDuration = e.duration;
-                              Duration position = e.position;
-                              int md = maxDuration.inMilliseconds;
-                              int p = position.inMilliseconds;
-                              double val = (p/md).toDouble();
-                              setState(() {
-                                sliderPosition =  val;
-                              });
-                            }
-                        );
-                      } : null,
-                      icon: Icon(recordIsBeingPlayed ? Icons.pause : Icons.play_arrow)
-                  ),
-                ),
-                Expanded(
-                  child: Slider(
-                    min: 0,
-                    max: 1,
-                    value: sliderPosition,
-                    onChanged: recordIsReady ? (newValue) async {
-                      var progress = await (myPlayer.getProgress());
-                      Duration? maxDuration = progress['duration'];
-                      int maxDurationMS = maxDuration!.inMilliseconds;
-                      setState(() {
-                        sliderPosition = newValue;
-                      });
-                      int curMS = (sliderPosition * maxDurationMS).toInt();
-                      Duration newPos = Duration(milliseconds: curMS );
-                      myPlayer.seekToPlayer(newPos);
-                    } : null,
-                    activeColor: Colors.black,
-                    inactiveColor: Colors.white,
-                  ),
-                ),
-                Container(
-                  color: Colors.black38,
-                  child: IconButton(
-
-                      onPressed: recordIsBeingPlayed ? null : () async {
-                        if (myRecorder.isRecording) {
-                          await myRecorder.stopRecorder();
-                          setState(() {
-                            recordIsReady = true;
-                          });
-                        }
-                        else if (!myRecorder.isRecording) {
-                          await myRecorder.startRecorder(toFile: 'myRecord');
-                          setState(() {
-                            recordIsReady = false;
-                          });
-                        }
-                      },
-                      icon: Icon(myRecorder.isRecording ? Icons.stop_sharp : Icons.mic  ,color: Colors.black,)
-                  ),
-                ),
-              ],
+            child: IconButton(
+                onPressed: recordIsReady ? () async {
+                  showAlertDialog(context);
+                } : null,
+                icon: Icon(Icons.delete)
             ),
           ),
-        ]
+          Container(
+            color: Colors.black38,
+            child: IconButton(
+                onPressed: recordIsReady ? () async {
+                  if (myPlayer.isPlaying) {
+                    myPlayer.pausePlayer();
+                    setState(() {
+                      recordIsBeingPlayed = false;
+                    });
+                  }
+                  else {
+                    if (!myPlayer.isPaused)
+                      myPlayer.startPlayer(
+                          fromURI: 'myRecord',
+                          whenFinished: (){
+                            setState(() {
+                              sliderPosition = 0;
+                              recordIsBeingPlayed = false;
+                            });
+                          }
+                      );
+                    else myPlayer.resumePlayer();
+                    setState(() {
+                      recordIsBeingPlayed = true;
+                    });
+                  }
+                  myPlayer.onProgress!.listen(
+                          (e) {
+                        Duration maxDuration = e.duration;
+                        Duration position = e.position;
+                        int md = maxDuration.inMilliseconds;
+                        int p = position.inMilliseconds;
+                        double val = (p/md).toDouble();
+                        setState(() {
+                          sliderPosition =  val;
+                        });
+                      }
+                  );
+                } : null,
+                icon: Icon(recordIsBeingPlayed ? Icons.pause : Icons.play_arrow)
+            ),
+          ),
+          Expanded(
+            child: Slider(
+              min: 0,
+              max: 1,
+              value: sliderPosition,
+              onChanged: recordIsReady ? (newValue) async {
+                var progress = await (myPlayer.getProgress());
+                Duration? maxDuration = progress['duration'];
+                int maxDurationMS = maxDuration!.inMilliseconds;
+                setState(() {
+                  sliderPosition = newValue;
+                });
+                int curMS = (sliderPosition * maxDurationMS).toInt();
+                Duration newPos = Duration(milliseconds: curMS );
+                myPlayer.seekToPlayer(newPos);
+              } : null,
+              activeColor: Colors.black,
+              inactiveColor: Colors.white,
+            ),
+          ),
+          Container(
+            color: Colors.black38,
+            child: IconButton(
+
+                onPressed: recordIsBeingPlayed ? null : () async {
+                  if (myRecorder.isRecording) {
+                    await myRecorder.stopRecorder();
+                    setState(() {
+                      recordIsReady = true;
+                    });
+                  }
+                  else if (!myRecorder.isRecording) {
+                    await myRecorder.startRecorder(toFile: 'myRecord');
+                    setState(() {
+                      recordIsReady = false;
+                    });
+                  }
+                },
+                icon: Icon(myRecorder.isRecording ? Icons.stop_sharp : Icons.mic  ,color: Colors.black,)
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -441,8 +435,45 @@ class _addConsultationMainState extends State<addConsultationMain> {
     return Padding(
         padding: EdgeInsets.all(10),
         child: ElevatedButton(
-          onPressed: ()async{
-
+          onPressed: isDoneButtonClicked == false ? ()async{
+            setState(() {
+              isDoneButtonClicked = true;
+            });
+            if (isEdit){
+              String? token = await storage.read(key: 'token');
+              http.Response response;
+              response = await http.put(
+                Uri.parse(URL + '/api/consultation/'+myConsultation.id),
+                headers: <String, String>{
+                  'Content-Type': 'application/json',
+                  'Accept': '*/*',
+                  'Connection': 'keep-alive',
+                  'Accept-Encoding': 'gzip, deflate, br',
+                  'Accept': 'application/json',
+                  'Authorization': 'Bearer $token',
+                },
+                body: jsonEncode(<String, String>{
+                  'breast_feeding' : isBreastFeed,
+                  'breast_feeding_month': breastFeedMonth,
+                  'pregnant' : isPregnant,
+                  'pregnant_month' : pregnancyMonth,
+                  'patient_complaint' : DescriptionController.text,
+                }),
+              );
+              if (response.statusCode == 200) {
+                if (myPatient.gender == "Female")
+                  Navigator.pop(context);
+                Navigator.pop(context);
+              }
+              else {
+                print(response.statusCode);
+                print(response.body);
+              }
+              setState(() {
+                isDoneButtonClicked = false;
+              });
+              return;
+            }
             String? recordPath = await myRecorder.getRecordURL(path: 'myRecord');
             String? token = await storage.read(key: 'token');
             var request = new http.MultipartRequest("POST", Uri.parse(URL + '/api/consultation'));
@@ -456,17 +487,64 @@ class _addConsultationMainState extends State<addConsultationMain> {
             request.fields['pregnant_month'] = pregnancyMonth;
             request.fields['patient_complaint'] = DescriptionController.text;
             for (XFile image in selectedImages)
-              request.files.add(await http.MultipartFile.fromPath('photos', image.path ));
+              request.files.add(await http.MultipartFile.fromPath('photos[]', image.path ));
+            for (File pdf in selectedPdfs)
+              request.files.add(await http.MultipartFile.fromPath('pdf[]', pdf.path ));
+            if (recordIsReady)
+              request.files.add(
+                  await http.MultipartFile.fromPath('audios[]', recordPath!));
             var response = await request.send();
-            print(response.statusCode);
-            print(await response.stream.bytesToString());
-          },
-          child: Text(AppLocalizations.of(context)!.done),
+            if (response.statusCode == 201) {
+              if (myPatient.gender == "Female")
+                Navigator.pop(context);
+              Navigator.pop(context);
+            }
+            else print(await response.stream.bytesToString());
+            setState(() {
+              isDoneButtonClicked = false;
+            });
+          } : null,
+          child: isDoneButtonClicked ? CircularProgressIndicator(color: Colors.white,) : Text(AppLocalizations.of(context)!.done),
         ),
     );
   }
 
 
+  showAlertDialog(BuildContext context) {
+    Widget cancelButton = TextButton(
+      child: Text(AppLocalizations.of(context)!.no),
+      onPressed:  () {
+        Navigator.of(context).pop();
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text(AppLocalizations.of(context)!.yes),
+      onPressed:  () async {
+        myRecorder.deleteRecord(fileName: 'myRecord');
+        setState(() {
+          recordIsReady = false;
+          sliderPosition = 0;
+        });
+        Navigator.pop(context);
+      },
+    );
 
+    AlertDialog alert = AlertDialog(
+      title: Text(AppLocalizations.of(context)!.delete),
+      content: Text(AppLocalizations.of(context)!.areYouSureYouWantTo+AppLocalizations.of(context)!.delete+" "+AppLocalizations.of(context)!.theRecord +"?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
 
 }

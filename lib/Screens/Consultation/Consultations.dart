@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
+import 'package:medical_app/classes/ConsultationInfo.dart';
 import 'package:medical_app/globalWidgets.dart';
 import '../../SecureStorage.dart';
 import 'dart:convert';
@@ -9,6 +13,7 @@ import '../../classes/PatientInfoClass.dart';
 import '../../MyColors.dart';
 import '../../BackEndURL.dart';
 import 'package:vibration/vibration.dart';
+import 'dart:ui' as ui;
 
 
 
@@ -21,9 +26,17 @@ class Consultations extends StatefulWidget {
 
 class _ConsultationsState extends State<Consultations> {
 
-  List<PatientInfo> myConsultations = List.empty(growable: true);
+  List<ConsultationInfo> myConsultations = List.empty(growable: true);
   late PatientInfo myPatient;
   bool dataIsFetched = false;
+
+  Map statusColor = {
+    'new' : Colors.amber,
+    'paid' : Colors.green,
+    'need information': Colors.red,
+    'wait for doctor': Colors.yellow,
+    'done': Colors.blue,
+  };
 
   @override
   void initState() {
@@ -50,41 +63,31 @@ class _ConsultationsState extends State<Consultations> {
         'Authorization': 'Bearer $token',
       },
     );
-    //Map JsonResponse = jsonDecode(response.body);
-    print(response.body);
-    print(response.statusCode);
-    /*if (response.statusCode == 200){
+    Map JsonResponse = jsonDecode(response.body);
+    if (response.statusCode == 200){
       List<dynamic> data = JsonResponse['data'];
       for (int i=0;i<data.length;i++){
         Map <String,dynamic> onePatient = data[i];
         String id = onePatient['id'].toString();
-        String name = onePatient['name'].toString();
-        String birthDate = onePatient['birthDate'].toString();
-        String phone = onePatient['phone'].toString();
-        String work = onePatient['work'].toString();
-        String address = onePatient['address'].toString();
-        String gender = onePatient['gender'].toString();
-        String marital = onePatient['marital'].toString();
-        myPatients.add(new PatientInfo(id, name, birthDate, phone, work, address, gender, marital));
+        String start_at = onePatient['start_at'].toString();
+        String end_at = onePatient['end_at'].toString();
+        String breast_feeding = onePatient['breast_feeding'].toString();
+        String breast_feeding_month = onePatient['breast_feeding_month'].toString();
+        String pregnant = onePatient['pregnant'].toString();
+        String pregnant_month = onePatient['pregnant_month'].toString();
+        String doctor_diagnosis = onePatient['doctor_diagnosis'].toString();
+        String patient_complaint = onePatient['patient_complaint'].toString();
+        Map <String,dynamic> status = onePatient['status'];
+        String status_name = status['name'];
+        myConsultations.add(new ConsultationInfo(id, start_at, end_at, breast_feeding, breast_feeding_month, pregnant, pregnant_month, doctor_diagnosis,patient_complaint,status_name));
       }
-    }*/
+    }
     setState(() {
       dataIsFetched = true;
     });
   }
 
-  String Capitalize(String s){
-    s.toLowerCase();
-    return s.split(" ").map(
-            (str) {
-          if (str.startsWith(RegExp(r'[a-z]+$')))
-            str = str.replaceRange(0, 1, str[0].toUpperCase());
-          return str;
-        }
-    ).join(" ");
-  }
-
-  showAlertDialog(BuildContext context,String PatientName,int index) {
+  showAlertDialog(BuildContext context,int index) {
     Widget cancelButton = TextButton(
       child: Text(AppLocalizations.of(context)!.no),
       onPressed:  () {
@@ -94,30 +97,30 @@ class _ConsultationsState extends State<Consultations> {
     Widget continueButton = TextButton(
       child: Text(AppLocalizations.of(context)!.yes),
       onPressed:  () async {
-        // String? token = await storage.read(key: 'token');
-        // http.Response response = await http.delete(
-        //   Uri.parse( URL+'/api/patient/'+myPatients[index].id),
-        //   headers: <String, String>{
-        //     'Content-Type': 'application/json',
-        //     'Accept': '*/*',
-        //     'Connection': 'keep-alive',
-        //     'Accept-Encoding': 'gzip, deflate, br',
-        //     'Accept': 'application/json',
-        //     'Authorization': 'Bearer $token',
-        //   },
-        // );
-        // if (response.statusCode == 204){
-        //   setState(() {
-        //     myPatients.removeAt(index);
-        //   });
-        // }
-        // Navigator.pop(context);
+        String? token = await storage.read(key: 'token');
+        http.Response response = await http.delete(
+          Uri.parse( URL+'/api/consultation/'+myConsultations[index].id),
+          headers: <String, String>{
+            'Content-Type': 'application/json',
+            'Accept': '*/*',
+            'Connection': 'keep-alive',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept': 'application/json',
+            'Authorization': 'Bearer $token',
+          },
+        );
+        if (response.statusCode == 204){
+          setState(() {
+            myConsultations.removeAt(index);
+          });
+        }
+        Navigator.pop(context);
       },
     );
 
     AlertDialog alert = AlertDialog(
       title: Text(AppLocalizations.of(context)!.delete),
-      content: Text(AppLocalizations.of(context)!.areYouSureYouWantTo+AppLocalizations.of(context)!.delete+" "+PatientName+"?"),
+      content: Text(AppLocalizations.of(context)!.areYouSureYouWantTo+AppLocalizations.of(context)!.delete+" "+AppLocalizations.of(context)!.thisConsultation +"?"),
       actions: [
         cancelButton,
         continueButton,
@@ -133,6 +136,11 @@ class _ConsultationsState extends State<Consultations> {
     );
   }
 
+
+  bool isRTL(String text) {
+    return Bidi.detectRtlDirectionality(text);
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -146,7 +154,7 @@ class _ConsultationsState extends State<Consultations> {
           ) :
           RefreshIndicator(
             onRefresh: ()async{
-              // await getMyPatients();
+              await getMyConsultations();
             },
             child: ListView.builder(
               padding: const EdgeInsets.all(8),
@@ -154,17 +162,61 @@ class _ConsultationsState extends State<Consultations> {
               itemBuilder: (BuildContext context, int index) {
                 return InkWell(
                   onTap: (){
-
+                    Navigator.pushNamed(context, '/consultationinformation', arguments: {
+                      'id': myConsultations[index].id,
+                    });
                   },
                   child: Dismissible(
-                    child: MyContainer(
-                        Text(myConsultations[index].name,style: TextStyle(fontSize: 20,color: Colors.black,fontWeight: FontWeight.bold)),
-                        Text(Capitalize(myConsultations[index].work+" \u25CF "+myConsultations[index].calculateAge()+" "+AppLocalizations.of(context)!.yearsOld),style: TextStyle(fontSize: 16, color: MyGreyColorDarker))
+                    child: Card(
+                        margin: EdgeInsets.all(10),
+                        shadowColor: Colors.blue,
+                        elevation: 10,
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide.none,
+                          borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            gradient: LinearGradient(
+                              begin: Alignment.centerLeft,
+                              end: Alignment.centerRight,
+                              colors: [Colors.black87, Colors.blue],
+                            ),
+                            borderRadius: BorderRadius.all(Radius.circular(25.0)),
+                          ),
+                          child: Column(
+                            children : [
+                               Padding(
+                                   padding: EdgeInsets.all(20),
+                                   child: Text(AppLocalizations.of(context)!.consultation+" ("+myConsultations[index].id+")",style: TextStyle(color: Colors.amber,fontWeight: FontWeight.bold,fontSize: 25),),
+                               ),
+                               Padding(
+                                  padding: const EdgeInsets.fromLTRB(40, 0, 40, 20),
+                                  child: Text(
+                                    myConsultations[index].patient_complaint,
+                                    maxLines: 5,
+                                    textDirection: isRTL(myConsultations[index].patient_complaint) ? ui.TextDirection.rtl : ui.TextDirection.ltr,
+                                    style: TextStyle(fontSize: 15,color: Colors.white,fontWeight: FontWeight.bold),overflow: TextOverflow.ellipsis,
+                                  )
+                               ),
+                               Padding(
+                                  padding: EdgeInsets.only(bottom: 20),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(Icons.circle,size: 10,color: statusColor[myConsultations[index].status_name],),
+                                      SizedBox(width: 4,),
+                                      Text(AppLocalizations.of(context)!.consultationStatus + myConsultations[index].status_name.toUpperCase(), style: TextStyle(fontWeight: FontWeight.bold,color: statusColor[myConsultations[index].status_name]),)
+                                    ],
+                                  ),
+                              ),
+                            ]
+                          ),
+                        )
                     ),
                     key: ValueKey(index),
                     background: Container(
                       color: Colors.amber,
-                      margin: EdgeInsets.all(20),
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.start,
@@ -180,7 +232,6 @@ class _ConsultationsState extends State<Consultations> {
                     ),
                     secondaryBackground: Container(
                       color: Colors.red,
-                      margin: EdgeInsets.all(20),
                       padding: EdgeInsets.symmetric(horizontal: 20),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.end,
@@ -198,20 +249,29 @@ class _ConsultationsState extends State<Consultations> {
                       return false;
                     },
                     onUpdate: (details) async{
-                      /*if (details.reached && !details.previousReached){
+                      if (details.reached && !details.previousReached){
                         bool hasVib = await Vibration.hasVibrator() ?? false;
                         if (hasVib)
                           Vibration.vibrate(duration: 100);
                         if (details.direction == DismissDirection.startToEnd){
-                          await Navigator.pushNamed(context, '/patientinformation',arguments: {
-                            'info': myPatients[index],
-                          });
-                          await getMyPatients();
+                          if (myPatient.gender == "Female") {
+                            await Navigator.pushNamed(context, '/addconsultationfemaleinfo',arguments: {
+                              'info': myPatient,
+                              'consultation': myConsultations[index],
+                            });
+                          }
+                          else {
+                            await Navigator.pushNamed(context, '/addconsultationmain',arguments: {
+                              'info': myPatient,
+                              'consultation': myConsultations[index],
+                            });
+                          }
+                          await getMyConsultations();
                         }
                         else {
-                          showAlertDialog(context, myPatients[index].name,index);
+                          showAlertDialog(context,index);
                         }
-                      }*/
+                      }
                     },
                   ),
                 );
