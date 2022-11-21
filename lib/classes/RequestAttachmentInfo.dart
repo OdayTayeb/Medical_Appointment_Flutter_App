@@ -8,6 +8,7 @@ class RequestAttachmentInfo{
   RequestAttachmentInfo(this.images, this.index);
 
   void incrementIndex(){index++;}
+  void decrementIndex(){index--;}
   void appendListOfImages(List <Uint8List> im){
     images.addAll(im);
   }

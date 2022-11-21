@@ -241,11 +241,7 @@ class _ConsultationInformationState extends State<ConsultationInformation> {
         if (attachments.length > 0)
           isFulfilled = true;
         requestAndAttachmentData.add(RequestInfo(id,index,comment,bloodTests,radioTests,isFulfilled));
-        if (bloodTests.length>0)
-          requestAndAttachment.add(Request('bloodTest',comment,requestAndAttachmentData.last as RequestInfo,requested: bloodTests,));
-        else if (radioTests.length>0)
-          requestAndAttachment.add(Request('radioGraph',comment,requestAndAttachmentData.last as RequestInfo,requested: radioTests));
-        else requestAndAttachment.add(Request('normal',comment,requestAndAttachmentData.last as RequestInfo));
+        requestAndAttachment.add(Request(requestAndAttachmentData.last as RequestInfo));
         index++;
 
         if (attachments.length>0) {
@@ -451,68 +447,77 @@ class _ConsultationInformationState extends State<ConsultationInformation> {
     );
   }
 
-  Widget Request(String type,String message,RequestInfo R,{List<String> requested = const []}){
+  Widget Request(RequestInfo R){
     List <Widget> content = List.empty(growable: true);
     content.add(Text(AppLocalizations.of(context)!.requestInformation,style: TextStyle(fontWeight: FontWeight.bold),));
-    content.add(Text(AppLocalizations.of(context)!.message + message));
-    if (type == 'bloodTest')
+    content.add(Text(AppLocalizations.of(context)!.message + R.comment));
+    if (R.bloodTests.length>0) {
       content.add(Text(AppLocalizations.of(context)!.requestedBloodTests));
-    if (type == 'radioGraph')
+      for (int i=0;i<R.bloodTests.length;i++)
+        content.add(Text('- '+R.bloodTests[i]));
+    }
+    if (R.radioTests.length>0) {
       content.add(Text(AppLocalizations.of(context)!.requestedRadioGraphTests));
-    for (int i=0;i<requested.length;i++)
-      content.add(Text('- '+requested[i]));
+      for (int i=0;i<R.radioTests.length;i++)
+        content.add(Text('- '+R.radioTests[i]));
+    }
     return Row(
+      mainAxisAlignment: MainAxisAlignment.start,
       children: [
-        Bubble(
-          alignment: Alignment.topRight,
-          nip: BubbleNip.rightTop,
-          nipHeight: 10,
-          nipWidth: 15,
-          margin: BubbleEdges.fromLTRB(25, 10, 10, 10),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children : content,
+        Container(
+          width: MediaQuery.of(context).size.width/1.5,
+          child: Bubble(
+            alignment: Alignment.topRight,
+            nip: BubbleNip.rightTop,
+            nipHeight: 10,
+            nipWidth: 15,
+            margin: BubbleEdges.fromLTRB(0, 10, 10, 10),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children : content,
+            ),
           ),
         ),
-        Expanded(
-            child: Align(
-              alignment: Alignment.topRight,
-              child: CircleAvatar(
-                backgroundColor: Colors.white,
-                child: IconButton(
-                  onPressed: () async {
-                    final ImagePicker _picker = ImagePicker();
-                    final List<XFile> images = await _picker.pickMultiImage();
-                    if (images.length>0) {
-                      String? token = await storage.read(key: 'token');
-                      var request = new http.MultipartRequest("POST",
-                          Uri.parse(
-                              URL + '/api/request/' + R.id + '/attachment'));
-                      request.headers['Authorization'] = 'Bearer ' + token!;
-                      request.headers['Accept'] = '*/*';
-                      request.headers['Accept'] = 'application/json';
-                      for (XFile image in images)
-                        request.files.add(await http.MultipartFile.fromPath(
-                            'photos[]', image.path));
-                      var response = await request.send();
-                      if (response.statusCode == 200) {
-                        updateRequestAndAttachment(R.index,images);
-                      }
-                      else {
-                        print(response.statusCode);
-                        print(response.stream.bytesToString());
-                      }
-                    }
-
-                  },
-                  icon: Icon(Icons.add),
-                  color: Colors.black,
-                ),
-              ),
-            )
-        )
+        Align(
+          alignment: Alignment.topRight,
+          child: CircleAvatar(
+            backgroundColor: Colors.white,
+            child: IconButton(
+              onPressed: () {
+                addAttachment(R);
+              },
+              icon: Icon(Icons.add),
+              color: Colors.black,
+            ),
+          ),
+        ),
       ],
     );
+  }
+
+  void addAttachment(RequestInfo R) async {
+    final ImagePicker _picker = ImagePicker();
+    final List<XFile> images = await _picker.pickMultiImage();
+    if (images.length>0) {
+      String? token = await storage.read(key: 'token');
+      var request = new http.MultipartRequest("POST",
+          Uri.parse(
+              URL + '/api/request/' + R.id + '/attachment'));
+      request.headers['Authorization'] = 'Bearer ' + token!;
+      request.headers['Accept'] = '*/*';
+      request.headers['Accept'] = 'application/json';
+      for (XFile image in images)
+        request.files.add(await http.MultipartFile.fromPath(
+            'photos[]', image.path));
+      var response = await request.send();
+      if (response.statusCode == 200) {
+      updateRequestAndAttachment(R.index,images);
+      }
+      else {
+      print(response.statusCode);
+      print(response.stream.bytesToString());
+      }
+    }
   }
 
   void updateRequestAndAttachment(int index,List <XFile> images) async {
@@ -552,59 +557,145 @@ class _ConsultationInformationState extends State<ConsultationInformation> {
   }
 
   Widget Attachment(RequestAttachmentInfo R){
-    return Bubble(
-      alignment: Alignment.topLeft,
-      nip: BubbleNip.leftTop,
-      nipHeight: 10,
-      nipWidth: 15,
-      margin: BubbleEdges.fromLTRB(10, 10, 25, 10),
-      color: MyCyanColor,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(AppLocalizations.of(context)!.uploadedDocuments,style: TextStyle(fontWeight: FontWeight.bold,)),
-          Container(
-            height: 100,
-            width: MediaQuery.of(context).size.width/1.8,
-            child: ListView.builder(
-                scrollDirection: Axis.horizontal,
-                itemCount: R.images.length,
-                itemBuilder: (context, index) {
-                  return InkWell(
-                    onTap: () {
-                      Navigator.pushNamed(
-                          context, '/imageshow', arguments: {
-                        'image': Image.memory(R.images[index])
-                      });
-                    },
-                    onLongPress: (){
-
-                    },
-                    child: Container(
-                      margin: EdgeInsets.all(5),
-                      padding: EdgeInsets.all(1),
-                      height: 90,
-                      width: 90,
-                      decoration: BoxDecoration(
-                        color: MyGreyColorDarker,
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child:
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(10),
-                        child: Image.memory(
-                          R.images[index],
-                          width: 90,
-                          height: 90,
-                          fit: BoxFit.cover,),
-                      ),
-                    ),
-                  );
-                }),
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.end,
+      children: [
+        Align(
+          alignment: Alignment.topRight,
+          child: CircleAvatar(
+            backgroundColor: Colors.redAccent,
+            child: IconButton(
+              onPressed: () async {
+                RequestInfo requestInfo = requestAndAttachmentData[R.index-1] as RequestInfo;
+                showAlertDialog(context, requestInfo);
+              },
+              icon: Icon(Icons.remove,color: Colors.white,),
+            ),
           ),
-        ],
-      ),
+        ),
+        Bubble(
+          alignment: Alignment.topLeft,
+          nip: BubbleNip.leftTop,
+          nipHeight: 10,
+          nipWidth: 15,
+          margin: BubbleEdges.fromLTRB(10, 10, 0, 10),
+          color: MyCyanColor,
+          child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(AppLocalizations.of(context)!.uploadedDocuments,style: TextStyle(fontWeight: FontWeight.bold,)),
+                  Container(
+                    height: 100,
+                    width: MediaQuery.of(context).size.width/1.8,
+                    child: ListView.builder(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: R.images.length,
+                        itemBuilder: (context, index) {
+                          return InkWell(
+                            onTap: () {
+                              Navigator.pushNamed(
+                                  context, '/imageshow', arguments: {
+                                'image': Image.memory(R.images[index])
+                              });
+                            },
+                            child: Container(
+                              margin: EdgeInsets.all(5),
+                              padding: EdgeInsets.all(1),
+                              height: 90,
+                              width: 90,
+                              decoration: BoxDecoration(
+                                color: MyGreyColorDarker,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child:
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.memory(
+                                  R.images[index],
+                                  width: 90,
+                                  height: 90,
+                                  fit: BoxFit.cover,),
+                              ),
+                            ),
+                          );
+                        }),
+                  ),
+                ],
+          ),
+        ),
+      ],
     );
+  }
+
+  showAlertDialog(BuildContext context,RequestInfo R) {
+    Widget cancelButton = TextButton(
+      child: Text(AppLocalizations.of(context)!.no),
+      onPressed:  () {
+        Navigator.of(context).pop();
+      },
+    );
+    Widget continueButton = TextButton(
+      child: Text(AppLocalizations.of(context)!.yes),
+      onPressed:  () async {
+        await deleteAttachments(R);
+        Navigator.pop(context);
+      },
+    );
+    AlertDialog alert = AlertDialog(
+      title: Text(AppLocalizations.of(context)!.delete),
+      content: Text(AppLocalizations.of(context)!.areYouSureYouWantTo+AppLocalizations.of(context)!.delete+" "+AppLocalizations.of(context)!.uploadedDocuments+"?"),
+      actions: [
+        cancelButton,
+        continueButton,
+      ],
+    );
+
+    // show the dialog
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
+  Future<void> deleteAttachments(RequestInfo R) async {
+    String? token = await storage.read(key: 'token');
+    http.Response response = await http.delete(
+      Uri.parse(URL+ '/api/req/' + R.id + '/attachment'),
+      headers: <String, String>{
+        'Content-Type': 'application/json',
+        'Accept': '*/*',
+        'Connection': 'keep-alive',
+        'Accept-Encoding': 'gzip, deflate, br',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $token',
+      },
+    );
+    if (response.statusCode == 204){
+      int index = R.index+1;
+      for (int i=index+1;i<requestAndAttachmentData.length;i++)
+      {
+        if (requestAndAttachmentData[i] is RequestInfo) {
+          RequestInfo r = requestAndAttachmentData[i] as RequestInfo;
+          r.decrementIndex();
+        }
+        else if (requestAndAttachmentData[i] is RequestAttachmentInfo) {
+          RequestAttachmentInfo r = requestAndAttachmentData[i] as RequestAttachmentInfo;
+          r.decrementIndex();
+        }
+      }
+      requestAndAttachmentData.removeAt(index);
+      requestAndAttachment.removeAt(index);
+      print('removed');
+      setState(() {
+
+      });
+    }
+    else {
+      print(response.statusCode);
+      print(response.body);
+    }
   }
 
 

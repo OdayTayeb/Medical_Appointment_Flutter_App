@@ -9,4 +9,5 @@ class RequestInfo{
   RequestInfo(this.id,this.index, this.comment, this.bloodTests, this.radioTests,this.isFulfilled);
 
   void incrementIndex(){index++;}
+  void decrementIndex(){index--;}
 }
