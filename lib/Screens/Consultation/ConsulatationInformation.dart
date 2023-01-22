@@ -251,6 +251,10 @@ class _ConsultationInformationState extends State<ConsultationInformation> {
         }
       }
     }
+    else{
+      print(response.body);
+      print(response.statusCode);
+    }
     setState(() {
 
     });
